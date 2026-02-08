@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>多智能体学习规划系统</title>
+  <style>
+    :root{
+      --bg:#0b0c10;
+      --card:#11131a;
+      --muted:#1a1d27;
+      --text:#e8eaf0;
+      --sub:#a7adbd;
+      --border:#23283a;
+      --accent:#7c5cff;
+      --danger:#ff4d4f;
+      --ok:#2ecc71;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background: radial-gradient(1200px 700px at 20% 0%, #15182a 0%, var(--bg) 55%) fixed;
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:20px}
+    .title{display:flex;align-items:center;gap:10px}
+    h1{font-size:22px;margin:0}
+    p.lead{margin:8px 0 18px;color:var(--sub)}
+    .grid{display:grid;grid-template-columns: 1fr; gap:16px}
+    @media (min-width: 980px){ .grid{grid-template-columns: 2fr 3fr; gap:18px} }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      overflow:hidden;
+    }
+    .card .hd{padding:16px 16px 10px}
+    .card .hd .h{font-weight:700}
+    .card .hd .d{color:var(--sub);font-size:13px;margin-top:6px}
+    .card .bd{padding:16px}
+
+    .row{display:grid;grid-template-columns:1fr; gap:12px}
+    @media (min-width: 720px){ .row.two{grid-template-columns:1fr 1fr} }
+
+    label{display:block;font-size:13px;color:var(--sub);margin:0 0 6px}
+    input, textarea{
+      width:100%;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,0.25);
+      color:var(--text);
+      border-radius: 12px;
+      padding:10px 12px;
+      outline:none;
+    }
+    textarea{resize:vertical; min-height:70px}
+    input:focus, textarea:focus{border-color: rgba(124,92,255,0.7); box-shadow: 0 0 0 4px rgba(124,92,255,0.15)}
+    .sep{height:1px;background:var(--border);margin:14px 0}
+
+    .btn{
+      width:100%;
+      border:none;
+      background: var(--accent);
+      color:white;
+      font-weight:700;
+      padding:11px 14px;
+      border-radius: 14px;
+      cursor:pointer;
+    }
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .btn.secondary{
+      width:auto;
+      background: rgba(255,255,255,0.08);
+      border:1px solid var(--border);
+      font-weight:600;
+    }
+    .top-actions{display:flex;gap:10px;align-items:center;justify-content:flex-end}
+
+    .alert{
+      border-radius: 14px;
+      padding:12px 12px;
+      border:1px solid rgba(255,77,79,0.45);
+      background: rgba(255,77,79,0.12);
+      color:#ffd6d6;
+      font-size:13px;
+      margin-top:12px;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .tabs{display:flex;gap:10px;flex-wrap:wrap}
+    .tab{
+      padding:8px 12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color:var(--text);
+      border-radius: 999px;
+      cursor:pointer;
+      font-size:13px;
+      user-select:none;
+    }
+    .tab.active{
+      border-color: rgba(124,92,255,0.7);
+      box-shadow: 0 0 0 4px rgba(124,92,255,0.12);
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background: rgba(255,255,255,0.04);
+      color:var(--text);
+      text-decoration:none;
+      max-width: 100%;
+    }
+    .pill small{
+      background: rgba(255,255,255,0.1);
+      border:1px solid var(--border);
+      padding:2px 8px;
+      border-radius:999px;
+      color:var(--sub);
+      font-size:12px;
+    }
+    .pill span{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width: 340px;
+      font-size:13px;
+    }
+
+    .mutebox{
+      border-radius: var(--radius);
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      padding:16px;
+      color:var(--sub);
+      font-size:13px;
+    }
+
+    .daycard{margin-top:12px}
+    .daycard .hdr{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--border);
+    }
+    .daycard .hdr .t{font-weight:700}
+    .daycard .hdr .s{color:var(--sub);font-size:12px;margin-top:6px}
+    .badge{
+      background: rgba(124,92,255,0.2);
+      border:1px solid rgba(124,92,255,0.35);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:#ddd6ff;
+      white-space:nowrap;
+    }
+    ul{margin:8px 0 0 18px; padding:0}
+    li{margin:6px 0; color:var(--text); font-size:13px; line-height:1.6}
+    pre{
+      margin:0;
+      font-size:12px;
+      line-height:1.55;
+      white-space:pre-wrap;
+      word-break:break-word;
+      background: rgba(0,0,0,0.25);
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding:12px;
+    }
+    .foot{margin-top:14px;color:var(--sub);font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--accent)"></div>
+      <h1>多智能体学习规划系统</h1>
+    </div>
+    <p class="lead">填写学习目标与时间约束，一键生成可执行的分天学习计划（含资源与验收标准）。</p>
+
+    <div class="grid">
+      <!-- 左侧表单 -->
+      <div class="card">
+        <div class="hd">
+          <div class="h">学习者信息</div>
+          <div class="d">建议先按“默认示例”跑通接口，再逐步个性化字段。</div>
+        </div>
+        <div class="bd">
+          <form id="form">
+            <div class="row">
+              <div>
+                <label>后端接口地址</label>
+                <input id="apiUrl" placeholder="http://127.0.0.1:8000/api/v1/study/plan" />
+                <div class="foot">默认：POST <code>http://127.0.0.1:8000/api/v1/study/plan</code></div>
+              </div>
+            </div>
+
+            <div class="sep"></div>
+
+            <div class="row two">
+              <div>
+                <label>学习者姓名</label>
+                <input id="learner_name" />
+              </div>
+              <div>
+                <label>截止日期（可选）</label>
+                <input id="deadline" placeholder="YYYY-MM-DD" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>学习主题/科目</label>
+                <input id="subject" />
+              </div>
+              <div>
+                <label>学习目标</label>
+                <textarea id="goal" rows="3"></textarea>
+              </div>
+              <div>
+                <label>当前水平（自述）</label>
+                <textarea id="current_level" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div class="row two">
+              <div>
+                <label>计划学习天数</label>
+                <input id="study_days" type="number" min="1" />
+              </div>
+              <div>
+                <label>每日可用时长（分钟）</label>
+                <input id="daily_time_minutes" type="number" min="10" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>偏好（用逗号分隔）</label>
+                <input id="preferences" placeholder="项目驱动, 少而精的文章/文档, 配套练习" />
+              </div>
+              <div>
+                <label>约束条件（用逗号分隔）</label>
+                <input id="constraints" placeholder="工作日只能晚上学习, 不想看超过30分钟的长视频" />
+              </div>
+              <div>
+                <label>额外要求（可选）</label>
+                <textarea id="free_text_input" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div id="errorBox" class="alert" style="display:none"></div>
+
+            <div style="margin-top:12px">
+              <button id="submitBtn" class="btn" type="submit">生成学习规划</button>
+              <div class="foot" style="margin-top:10px">
+                提示：后端如果返回的不是 JSON（比如夹了解释文字），前端会解析失败；请确保接口只输出 JSON。
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 右侧结果 -->
+      <div class="card">
+        <div class="hd" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div>
+            <div class="h">学习规划结果</div>
+            <div class="d">包含里程碑、资源推荐与分天任务。</div>
+          </div>
+          <div class="top-actions">
+            <button id="copyBtn" class="btn secondary" type="button" disabled>复制JSON</button>
+          </div>
+        </div>
+        <div class="bd">
+          <div id="emptyState" class="mutebox">
+            这里会显示生成的学习规划。请先在左侧填写信息并点击“生成学习规划”。
+          </div>
+
+          <div id="resultArea" style="display:none">
+            <div class="tabs" style="margin-bottom:14px">
+              <div class="tab active" data-tab="overview">概览</div>
+              <div class="tab" data-tab="daily">分天计划</div>
+              <div class="tab" data-tab="resources">资源</div>
+              <div class="tab" data-tab="json">原始JSON</div>
+            </div>
+
+            <div id="tab_overview"></div>
+            <div id="tab_daily" style="display:none"></div>
+            <div id="tab_resources" style="display:none"></div>
+            <div id="tab_json" style="display:none"></div>
+          </div>
+
+          <div class="foot" style="margin-top:14px">
+            后端接口建议返回：<code>Content-Type: application/json</code>，并确保可直接被 <code>res.json()</code> 解析。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const DEFAULT_API_URL = "http://127.0.0.1:8000/api/v1/study/plan";
+
+  const initialForm = {
+    learner_name: "小明",
+    subject: "Python 数据分析",
+    goal: "能独立完成一个带可视化与简单建模的分析项目，并能读懂常见数据分析代码",
+    current_level: "学过Python基础语法，会写简单脚本，但pandas/numpy不熟",
+    deadline: "2026-03-15",
+    study_days: 14,
+    daily_time_minutes: 90,
+    preferences: "项目驱动, 少而精的文章/文档, 配套练习",
+    constraints: "工作日只能晚上学习, 不想看超过30分钟的长视频",
+    free_text_input: "希望每天都有可交付的小输出；最后做一个完整小项目",
+  };
+
+  function $(id){ return document.getElementById(id); }
+
+  function parseCommaList(v){
+    if(!v) return [];
+    return v.split(/[,，]/).map(s=>s.trim()).filter(Boolean);
+  }
+
+  function safeJsonStringify(obj){
+    try { return JSON.stringify(obj, null, 2); }
+    catch(e){ return String(obj); }
+  }
+
+  async function copyToClipboard(text){
+    try{
+      await navigator.clipboard.writeText(text);
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  // --- state ---
+  let plan = null;
+
+  // init form
+  $("apiUrl").value = DEFAULT_API_URL;
+  for (const [k,v] of Object.entries(initialForm)){
+    if($(k)) $(k).value = v;
+  }
+
+  function setLoading(isLoading){
+    $("submitBtn").disabled = isLoading;
+    $("submitBtn").textContent = isLoading ? "正在生成学习规划…" : "生成学习规划";
+  }
+
+  function showError(msg){
+    const box = $("errorBox");
+    if(!msg){
+      box.style.display = "none";
+      box.textContent = "";
+      return;
+    }
+    box.style.display = "block";
+    box.textContent = "生成失败：\n" + msg;
+  }
+
+  function setTabs(active){
+    document.querySelectorAll(".tab").forEach(t=>{
+      t.classList.toggle("active", t.dataset.tab === active);
+    });
+    ["overview","daily","resources","json"].forEach(name=>{
+      $("tab_" + name).style.display = (name === active) ? "block" : "none";
+    });
+  }
+
+  function pillHTML(r){
+    const type = (r && r.type) ? r.type : "resource";
+    const title = (r && r.title) ? r.title : (r && r.url) ? r.url : "resource";
+    const url = (r && r.url) ? r.url : "#";
+    const summary = (r && r.summary) ? r.summary : "";
+    return `
+      <a class="pill" href="${escapeHtmlAttr(url)}" target="_blank" rel="noreferrer" title="${escapeHtmlAttr(summary || title)}">
+        <small>${escapeHtml(type)}</small>
+        <span>${escapeHtml(title)}</span>
+      </a>
+    `;
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+  function escapeHtmlAttr(s){ return escapeHtml(s); }
+
+  function render(){
+    $("copyBtn").disabled = !plan;
+
+    if(!plan){
+      $("emptyState").style.display = "block";
+      $("resultArea").style.display = "none";
+      return;
+    }
+
+    $("emptyState").style.display = "none";
+    $("resultArea").style.display = "block";
+
+    // --- overview ---
+    const profile = plan.learner_profile || {};
+    const profileItems = Object.entries(profile).slice(0,6).map(([k,v]) =>
+      `<div style="display:flex;gap:10px;margin:6px 0">
+        <div style="min-width:96px;color:var(--sub);font-size:13px">${escapeHtml(k)}：</div>
+        <div style="color:var(--text);font-size:13px;word-break:break-word">${escapeHtml(String(v))}</div>
+      </div>`
+    ).join("");
+
+    const milestones = (plan.milestones || []).map(m=>`<li>${escapeHtml(m)}</li>`).join("");
+    const risks = (plan.risks_and_mitigations || []).map(r=>`<li>${escapeHtml(r)}</li>`).join("");
+
+    $("tab_overview").innerHTML = `
+      <div class="row two">
+        <div class="card">
+          <div class="hd"><div class="h">主题与目标</div><div class="d">规划的核心方向</div></div>
+          <div class="bd" style="font-size:13px;line-height:1.7">
+            <div><b>科目：</b>${escapeHtml(plan.subject || "")}</div>
+            <div style="margin-top:8px"><b>目标：</b>${escapeHtml(plan.goal || "")}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hd"><div class="h">学习者画像</div><div class="d">用于个性化的输入摘要</div></div>
+          <div class="bd">${profileItems || `<div class="mutebox">无 learner_profile</div>`}</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="hd"><div class="h">里程碑</div><div class="d">阶段性产出与验收</div></div>
+        <div class="bd">
+          <ul>${milestones || `<li>（无）</li>`}</ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="hd"><div class="h">风险与应对</div><div class="d">保证计划可执行</div></div>
+        <div class="bd">
+          <ul>${risks || `<li>（无）</li>`}</ul>
+        </div>
+      </div>
+    `;
+
+    // --- daily ---
+    const daily = (plan.daily_plans || []).map(d=>{
+      const tasks = (d.tasks || []).map(t=>`<li>${escapeHtml(t)}</li>`).join("");
+      const res = (d.resources || []).map(pillHTML).join(" ");
+      const checkpoint = d.checkpoint ? `
+        <div style="margin-top:12px;border:1px solid var(--border);background:rgba(255,255,255,0.03);border-radius:14px;padding:12px">
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px">验收标准（Checkpoint）</div>
+          <div style="font-size:13px;line-height:1.7;color:var(--text)">${escapeHtml(d.checkpoint)}</div>
+        </div>` : "";
+
+      return `
+        <div class="card daycard">
+          <div class="hdr">
+            <div>
+              <div class="t">第 ${escapeHtml(d.day)} 天</div>
+              <div class="s">${d.date ? `日期：${escapeHtml(d.date)} · ` : ""}总时长：${escapeHtml(d.total_minutes)} 分钟</div>
+            </div>
+            <div class="badge">${escapeHtml(d.focus || "")}</div>
+          </div>
+          <div class="bd">
+            <div style="font-weight:700;font-size:13px;margin-bottom:8px">任务清单</div>
+            <ul>${tasks || `<li>（无）</li>`}</ul>
+
+            ${ (d.resources && d.resources.length) ? `
+              <div style="margin-top:12px">
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">当天资源</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px">${res}</div>
+              </div>` : ""
+            }
+
+            ${checkpoint}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    $("tab_daily").innerHTML = daily || `<div class="mutebox">无 daily_plans</div>`;
+
+    // --- resources ---
+    const rec = (plan.recommended_resources || []).map(pillHTML).join(" ");
+    // aggregate
+    const map = new Map();
+    for (const d of (plan.daily_plans || [])){
+      for (const r of (d.resources || [])){
+        if (r && r.url && !map.has(r.url)) map.set(r.url, r);
+      }
+    }
+    const agg = Array.from(map.values()).map(pillHTML).join(" ");
+
+    $("tab_resources").innerHTML = `
+      <div class="card">
+        <div class="hd"><div class="h">推荐资源</div><div class="d">来自资源Agent（或后端已整理）</div></div>
+        <div class="bd">
+          <div style="display:flex;flex-wrap:wrap;gap:8px">${rec || `<div class="mutebox">无 recommended_resources</div>`}</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="hd"><div class="h">按天资源（汇总）</div><div class="d">分天计划中被引用的资源</div></div>
+        <div class="bd">
+          <div style="display:flex;flex-wrap:wrap;gap:8px">${agg || `<div class="mutebox">无按天资源</div>`}</div>
+        </div>
+      </div>
+    `;
+
+    // --- json ---
+    $("tab_json").innerHTML = `
+      <div class="card">
+        <div class="hd"><div class="h">原始 JSON</div><div class="d">便于调试与保存</div></div>
+        <div class="bd"><pre>${escapeHtml(safeJsonStringify(plan))}</pre></div>
+      </div>
+    `;
+  }
+
+  // tabs events
+  document.querySelectorAll(".tab").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      setTabs(el.dataset.tab);
+    });
+  });
+
+  // copy button
+  $("copyBtn").addEventListener("click", async ()=>{
+    if(!plan) return;
+    const ok = await copyToClipboard(safeJsonStringify(plan));
+    $("copyBtn").textContent = ok ? "已复制" : "复制失败";
+    setTimeout(()=> $("copyBtn").textContent = "复制JSON", 1200);
+  });
+
+  // submit
+  $("form").addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    showError("");
+    setLoading(true);
+    plan = null;
+    render();
+
+    const apiUrl = $("apiUrl").value || DEFAULT_API_URL;
+
+    const payload = {
+      learner_name: $("learner_name").value,
+      subject: $("subject").value,
+      goal: $("goal").value,
+      current_level: $("current_level").value,
+      deadline: $("deadline").value || null,
+      study_days: Number($("study_days").value) || 1,
+      daily_time_minutes: Number($("daily_time_minutes").value) || 30,
+      preferences: parseCommaList($("preferences").value),
+      constraints: parseCommaList($("constraints").value),
+      free_text_input: $("free_text_input").value || null,
+    };
+
+    try{
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload),
+      });
+
+      if(!res.ok){
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status}: ${text || "请求失败"}`);
+      }
+
+      // 强制 JSON
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "规划失败");
+      plan = data.data;
+
+
+      setTabs("overview");
+      render();
+    }catch(err){
+      showError(err && err.message ? err.message : "请求失败");
+    }finally{
+      setLoading(false);
+    }
+  });
+
+  // initial render
+  render();
+</script>
+</body>
+</html>
