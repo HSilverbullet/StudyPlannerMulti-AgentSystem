@@ -5,4 +5,5 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
-# AMAP_API_KEY = os.getenv("AMAP_API_KEY")
+
+TAVILY_API_KEY=os.getenv("TAVILY_API_KEY")
